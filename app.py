@@ -3,7 +3,6 @@
 текст описания и схемы интерфейса прикрепить в README.md
 
 - Подберите нужные библиотеки. Интерфейс можно писать на любой удобной, для функционала можно использовать дополнительные внешние библиотеки.
-
 '''
 
 import flet as ft
@@ -127,7 +126,7 @@ def main(page: ft.Page):
     calculate_button = ft.ElevatedButton(text="Оформить кредит", on_click=submit_loan)
 
     price_button = ft.ElevatedButton(text="Стоимость", on_click=fetch_car_price)  # Кнопка для получения стоимости
-    next_client_button = ft.ElevatedButton(text="Следующий клиент", on_click=reset_form)  # Кнопка для сброса формы
+    next_client_button = ft.ElevatedButton(text="Очистить форму", on_click=reset_form)  # Кнопка для сброса формы
 
     form = ft.Column(
         controls=[
@@ -136,7 +135,7 @@ def main(page: ft.Page):
             # Кнопка для получения стоимости
             ft.Row(controls=[loan_amount_input]),
             ft.Row(controls=[interest_rate_input, term_input, return_amount_input, calculate_button]),
-            ft.Row(controls=[next_client_button])  # Добавлена кнопка "Очистить форму"
+            ft.Row(controls=[next_client_button])  # Кнопка "Очистить форму"
         ],
         spacing=40
     )
