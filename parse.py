@@ -7,26 +7,20 @@ import time
 
 # Функция для формирования URL на основе бренда, модели и года
 def get_avito_url(brand, model, year):
-    urls = {
-        ('Toyota', 'Corolla',
-         '2006'): 'https://www.avito.ru/samara/avtomobili/toyota/corolla/ix_restayling-ASgBAgICA0Tgtg20mSjitg2woijqtg389Sg?cd=1&radius=0&searchRadius=0',
-        ('Toyota', 'Corolla',
-         '2020'): 'https://www.avito.ru/samara/avtomobili/toyota/corolla/xii-ASgBAgICA0Tgtg20mSjitg2woijqtg2k8TE?cd=1&radius=0&searchRadius=0',
-        ('Toyota', 'Camry',
-         '2006'): 'https://www.avito.ru/samara/avtomobili/toyota/camry/xv30-ASgBAgICA0Tgtg20mSjitg3UoCjqtg229Sg?cd=1&radius=0&searchRadius=0',
-        ('Toyota', 'Camry',
-         '2020'): 'https://www.avito.ru/samara/avtomobili/toyota/camry/xv70_restayling-ASgBAgICA0Tgtg20mSjitg3UoCjqtg2sr1s?cd=1&radius=0&searchRadius=0',
-        ('Toyota', 'Land Cruiser Prado',
-         '2006'): 'https://www.avito.ru/samara/avtomobili/toyota/land_cruiser_prado/120_restayling-ASgBAgICA0Tgtg20mSjitg34qCjqtg3K9yg?cd=1&radius=0&searchRadius=0',
-        ('Toyota', 'Land Cruiser Prado',
-         '2020'): 'https://www.avito.ru/samara/avtomobili/toyota/land_cruiser_prado/150_restayling_2-ASgBAgICA0Tgtg20mSjitg34qCjqtg2W~yg?cd=1&radius=0&searchRadius=0',
-        ('Toyota', 'Land Cruiser',
-         '2006'): 'https://www.avito.ru/samara/avtomobili/toyota/land_cruiser/100_restayling_2-ASgBAgICA0Tgtg20mSjitg32qCjqtg2~9yg?cd=1&radius=0&searchRadius=0',
-        ('Toyota', 'Land Cruiser',
-         '2020'): 'https://www.avito.ru/samara/avtomobili/toyota/land_cruiser/200_restayling_2-ASgBAgICA0Tgtg20mSjitg32qCjqtg3q~Sg?cd=1&radius=0&searchRadius=0'
+    # Предопределенные ссылки для каждой комбинации
+    url_map = {
+        ("Toyota", "Corolla", "2006"): "https://www.avito.ru/samara/avtomobili/toyota/corolla/ix_restayling-ASgBAgICA0Tgtg20mSjitg2woijqtg389Sg?cd=1&radius=0&searchRadius=0",
+        ("Toyota", "Corolla", "2020"): "https://www.avito.ru/samara/avtomobili/toyota/corolla/xii-ASgBAgICA0Tgtg20mSjitg2woijqtg2k8TE?cd=1&radius=0&searchRadius=0",
+        ("Toyota", "Camry", "2006"): "https://www.avito.ru/samara/avtomobili/toyota/camry/xv30-ASgBAgICA0Tgtg20mSjitg3UoCjqtg229Sg?cd=1&radius=0&searchRadius=0",
+        ("Toyota", "Camry", "2020"): "https://www.avito.ru/samara/avtomobili/toyota/camry/xv70_restayling-ASgBAgICA0Tgtg20mSjitg3UoCjqtg2sr1s?cd=1&radius=0&searchRadius=0",
+        ("Toyota", "Land Cruiser Prado", "2006"): "https://www.avito.ru/samara/avtomobili/toyota/land_cruiser_prado/120_restayling-ASgBAgICA0Tgtg20mSjitg34qCjqtg3K9yg?cd=1&radius=0&searchRadius=0",
+        ("Toyota", "Land Cruiser Prado", "2020"): "https://www.avito.ru/samara/avtomobili/toyota/land_cruiser_prado/150_restayling_2-ASgBAgICA0Tgtg20mSjitg34qCjqtg2W~yg?cd=1&radius=0&searchRadius=0",
+        ("Toyota", "Land Cruiser", "2006"): "https://www.avito.ru/samara/avtomobili/toyota/land_cruiser/100_restayling_2-ASgBAgICA0Tgtg20mSjitg32qCjqtg2~9yg?cd=1&radius=0&searchRadius=0",
+        ("Toyota", "Land Cruiser", "2020"): "https://www.avito.ru/samara/avtomobili/toyota/land_cruiser/200_restayling_2-ASgBAgICA0Tgtg20mSjitg32qCjqtg3q~Sg?cd=1&radius=0&searchRadius=0"
     }
 
-    return urls.get((brand, model, year), None)
+    # Возвращаем URL на основе выбранных параметров
+    return url_map.get((brand, model, year), "")
 
 
 # Функция парсинга цен
@@ -46,7 +40,7 @@ def scrape_item_prices(url):
         print("Страница загружена")
 
         item_prices = []
-        while len(item_prices) < 5:  # Изменим условие для сбора 5 цен
+        while len(item_prices) < 5:  # Собираем 5 цен
             try:
                 prices = driver.find_elements(By.CLASS_NAME, 'iva-item-priceStep-uq2CQ')
                 for price in prices:
@@ -55,15 +49,19 @@ def scrape_item_prices(url):
                         continue
                     price_value = int(''.join(filter(str.isdigit, price_text)))
                     item_prices.append(price_value)
-                    if len(item_prices) >= 5:  # Собрали 5 цен
+                    if len(item_prices) >= 5:  # Если собрано 5 цен, выходим из цикла
                         break
             except Exception:
                 print("Нужно решить капчу")
                 input("Нажмите Enter после решения капчи")
 
-        avg_price = sum(item_prices) / len(item_prices)  # Рассчитываем среднюю цену
+        avg_price = sum(item_prices) / len(item_prices) if item_prices else 0  # Рассчитываем среднюю цену
         print(f"Средняя цена: {avg_price}")
         return avg_price
+
+    except Exception as e:
+        print(f"Ошибка парсинга: {e}")
+        return 0
 
     finally:
         driver.quit()

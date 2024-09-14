@@ -27,7 +27,7 @@ def main(page: ft.Page):
         if re.match(r'^\d{2}\.\d{2}\.\d{4}$', birth_date_input.value):
             birth_date_input.error_text = None
         else:
-            birth_date_input.error_text = "Формат должен быть дд.мм.гггг"
+            birth_date_input.error_text = "Формат должен быть 00.00.0000"
         page.update()
 
     # Валидация паспортных данных
@@ -54,11 +54,11 @@ def main(page: ft.Page):
     # Расчет кредита
     def calculate_loan(e):
         try:
-            loan_amount = float(loan_amount_input.value)
+            loan_amount = float(credit_sum_input.value)  # Используем сумму кредита
             interest_rate = float(interest_rate_input.value) / 100  # Преобразуем процент в десятичную дробь
             term_months = int(term_input.value)
 
-            # Рассчитываем сумму возврата
+            # Рассчитываем сумму возврата на основе суммы кредита
             return_amount = loan_amount * (1 + interest_rate * term_months)
             return_amount_input.value = str(return_amount)
             page.update()
@@ -98,19 +98,23 @@ def main(page: ft.Page):
             return  # Выход из функции, если данные не введены
 
         # Формируем URL для парсинга
-        url = f"https://www.avito.ru/samara/avtomobili/{brand}/{model}-ASgBAgICAkTgtg20mSjitg2woig?cd=1&radius=0&searchRadius=0"
+        url = parse.get_avito_url(brand, model, year)
 
         print(f"URL для парсинга: {url}")  # Отладочное сообщение для проверки URL
 
         # Получаем среднюю цену с помощью функции веб-скрапинга
-        avg_price = parse.scrape_item_prices(url)  # Открытие браузера происходит только здесь
+        avg_price = parse.scrape_item_prices(url)
 
         if avg_price > 0:
             loan_amount_input.value = str(avg_price)
-            loan_amount_input.read_only = True  # Запрещаем изменение суммы кредита
+            loan_amount_input.read_only = True  # Запрещаем изменение средней стоимости авто
+            credit_sum_input.value = str(avg_price * 0.6)  # Рассчитываем сумму кредита как 60% от средней стоимости
+            credit_sum_input.read_only = True  # Запрещаем изменение суммы кредита
         else:
             loan_amount_input.value = ""
-            loan_amount_input.read_only = False  # Разрешаем ввод суммы кредита вручную
+            loan_amount_input.read_only = False  # Разрешаем ввод средней стоимости авто вручную
+            credit_sum_input.value = ""
+            credit_sum_input.read_only = False  # Разрешаем ввод суммы кредита вручную
             page.add(ft.Text("Цена не найдена. Введите сумму кредита вручную.", color="red"))
 
         page.update()
@@ -124,10 +128,26 @@ def main(page: ft.Page):
         model_dropdown.value = None
         year_dropdown.value = None
         loan_amount_input.value = ""
+        credit_sum_input.value = ""
         interest_rate_input.value = ""
         term_input.value = ""
         return_amount_input.value = ""
-        loan_amount_input.read_only = False  # Снова делаем поле для суммы кредита редактируемым
+        loan_amount_input.read_only = False  # Снова делаем поле для средней стоимости авто редактируемым
+        credit_sum_input.read_only = False  # Снова делаем поле для суммы кредита редактируемым
+        page.update()
+
+    # Динамическое обновление моделей на основе бренда
+    def update_models(e):
+        brand = brand_dropdown.value
+        if brand == "Toyota":
+            model_dropdown.options = [
+                ft.dropdown.Option("Corolla"),
+                ft.dropdown.Option("Camry"),
+                ft.dropdown.Option("Land Cruiser Prado"),
+                ft.dropdown.Option("Land Cruiser")
+            ]
+        else:
+            model_dropdown.options = []
         page.update()
 
     # Создание полей и кнопок
@@ -138,31 +158,30 @@ def main(page: ft.Page):
 
     brand_dropdown = ft.Dropdown(
         label="Бренд",
-        options=[ft.dropdown.Option("Toyota")]
+        options=[ft.dropdown.Option("Toyota")],
+        on_change=update_models
     )
     model_dropdown = ft.Dropdown(
-        label="Модель",
-        options=[ft.dropdown.Option("Corolla"), ft.dropdown.Option("Camry"),
-                 ft.dropdown.Option("Land Cruiser Prado"), ft.dropdown.Option("Land Cruiser")]
+        label="Модель"
     )
     year_dropdown = ft.Dropdown(
         label="Год",
         options=[ft.dropdown.Option("2006"), ft.dropdown.Option("2020")]
     )
-    loan_amount_input = ft.TextField(label="Средняя стоимость авто")
-    credit_sum = ft.TextField(label="Сумма кредита")
-    interest_rate_input = ft.TextField(label="Процент", on_change=calculate_loan)
-    term_input = ft.TextField(label="Срок кредита", on_change=calculate_loan)
+    loan_amount_input = ft.TextField(label="Средняя стоимость авто", read_only=True)
+    credit_sum_input = ft.TextField(label="Сумма кредита", read_only=True)  # Поле для суммы кредита (60% от стоимости авто)
+    interest_rate_input = ft.TextField(label="Процент, мес.", on_change=calculate_loan)
+    term_input = ft.TextField(label="Срок кредита, мес.", on_change=calculate_loan)
     return_amount_input = ft.TextField(label="К возврату", read_only=True)
     calculate_button = ft.ElevatedButton(text="Оформить кредит", on_click=submit_loan)
 
-    price_button = ft.ElevatedButton(text="Стоимость", on_click=fetch_car_price)  # Кнопка для получения стоимости
-    next_client_button = ft.ElevatedButton(text="Очистить форму", on_click=reset_form)  # Кнопка для сброса формы
+    price_button = ft.ElevatedButton(text="Стоимость", on_click=fetch_car_price)
+    next_client_button = ft.ElevatedButton(text="Очистить форму", on_click=reset_form)
 
     form = ft.Column(
         controls=[ft.Row(controls=[fio_input, birth_date_input, passport_input, check_button]),
                   ft.Row(controls=[brand_dropdown, model_dropdown, year_dropdown, price_button]),
-                  ft.Row(controls=[loan_amount_input]),
+                  ft.Row(controls=[loan_amount_input, credit_sum_input]),  # Добавлено новое поле для суммы кредита
                   ft.Row(controls=[interest_rate_input, term_input, return_amount_input, calculate_button]),
                   ft.Row(controls=[next_client_button])],
         spacing=40
