@@ -52,8 +52,8 @@ def scrape_item_prices(url):
                     if len(item_prices) >= 5:  # Если собрано 5 цен, выходим из цикла
                         break
             except Exception:
-                print("Нужно решить капчу")
-                input("Нажмите Enter после решения капчи")
+                print("Нужно ввести капчу")
+                input("Нажмите Enter после капчи")
 
         avg_price = sum(item_prices) / len(item_prices) if item_prices else 0  # Рассчитываем среднюю цену
         print(f"Средняя цена: {avg_price}")
