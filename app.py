@@ -51,7 +51,7 @@ def main(page: ft.Page):
         else:
             page.add(ft.Text("Запись не найдена", color="blue"))
 
-    # Расчет кредита
+    # Расчет суммы кредита
     def calculate_loan(e):
         try:
             loan_amount = float(credit_sum_input.value)  # Используем сумму кредита
@@ -77,6 +77,7 @@ def main(page: ft.Page):
                 birth_date=birth_date_input.value,
                 passport_data=passport_input.value,
                 brand=brand_dropdown.value,
+                model=model_dropdown.value,  # Добавлен параметр model
                 year=int(year_dropdown.value),
                 loan_amount=float(loan_amount_input.value),
                 return_amount=float(return_amount_input.value)
@@ -169,7 +170,8 @@ def main(page: ft.Page):
         options=[ft.dropdown.Option("2006"), ft.dropdown.Option("2020")]
     )
     loan_amount_input = ft.TextField(label="Средняя стоимость авто", read_only=True)
-    credit_sum_input = ft.TextField(label="Сумма кредита", read_only=True)  # Поле для суммы кредита (60% от стоимости авто)
+    credit_sum_input = ft.TextField(label="Сумма кредита",
+                                    read_only=True)  # Поле для суммы кредита (60% от стоимости авто)
     interest_rate_input = ft.TextField(label="Процент, мес.", on_change=calculate_loan)
     term_input = ft.TextField(label="Срок кредита, мес.", on_change=calculate_loan)
     return_amount_input = ft.TextField(label="К возврату", read_only=True)
@@ -184,6 +186,7 @@ def main(page: ft.Page):
                   ft.Row(controls=[loan_amount_input, credit_sum_input]),  # Добавлено новое поле для суммы кредита
                   ft.Row(controls=[interest_rate_input, term_input, return_amount_input, calculate_button]),
                   ft.Row(controls=[next_client_button])],
+
         spacing=40
     )
 
