@@ -7,8 +7,9 @@
 
 import flet as ft
 import db
-import parse  # Импортируем модуль с функцией парсинга
+import parse
 import re
+import agreement  # Импортируем модуль для создания договора
 
 
 def main(page: ft.Page):
@@ -77,12 +78,29 @@ def main(page: ft.Page):
                 birth_date=birth_date_input.value,
                 passport_data=passport_input.value,
                 brand=brand_dropdown.value,
-                model=model_dropdown.value,  # Добавлен параметр model
+                model=model_dropdown.value,
                 year=int(year_dropdown.value),
-                loan_amount=float(loan_amount_input.value),
-                return_amount=float(return_amount_input.value)
+                loan_amount=round(float(loan_amount_input.value), 2),
+                return_amount=round(float(return_amount_input.value), 2)
             )
-            page.add(ft.Text("Кредит оформлен успешно!", color="green"))
+
+            # После успешного оформления кредита создаем договор
+            agreement_file = agreement.create_agreement(
+                fio=fio_input.value,
+                birth_date=birth_date_input.value,
+                passport=passport_input.value,
+                brand=brand_dropdown.value,
+                model=model_dropdown.value,
+                year=year_dropdown.value,
+                credit_sum=round(float(credit_sum_input.value), 2),
+                interest_rate=interest_rate_input.value,
+                term=term_input.value,
+                return_amount=round(float(return_amount_input.value), 2)
+            )
+
+            # Уведомляем пользователя об успешном оформлении кредита и создании договора
+            page.add(ft.Text(f"Кредит оформлен успешно! Договор сохранен в файле: {agreement_file}", color="green"))
+
         except ValueError:
             page.add(ft.Text("Ошибка при оформлении кредита. Проверьте введенные данные.", color="red"))
 
@@ -107,9 +125,11 @@ def main(page: ft.Page):
         avg_price = parse.scrape_item_prices(url)
 
         if avg_price > 0:
-            loan_amount_input.value = str(avg_price)
+            avg_price_rounded = round(avg_price, 2)
+            loan_amount_input.value = f"{avg_price_rounded:.2f}"
             loan_amount_input.read_only = True  # Запрещаем изменение средней стоимости авто
-            credit_sum_input.value = str(avg_price * 0.6)  # Рассчитываем сумму кредита как 60% от средней стоимости
+            credit_sum_rounded = round(avg_price_rounded * 0.6, 2)
+            credit_sum_input.value = f"{credit_sum_rounded:.2f}"  # Рассчитываем сумму кредита как 60% от средней стоимости
             credit_sum_input.read_only = True  # Запрещаем изменение суммы кредита
         else:
             loan_amount_input.value = ""
@@ -169,9 +189,8 @@ def main(page: ft.Page):
         label="Год",
         options=[ft.dropdown.Option("2006"), ft.dropdown.Option("2020")]
     )
-    loan_amount_input = ft.TextField(label="Средняя стоимость авто", read_only=True)
-    credit_sum_input = ft.TextField(label="Сумма кредита",
-                                    read_only=True)  # Поле для суммы кредита (60% от стоимости авто)
+    loan_amount_input = ft.TextField(label="Стоимость авто", read_only=True)
+    credit_sum_input = ft.TextField(label="Сумма кредита", read_only=True)  # Поле для суммы кредита (60% от стоимости авто)
     interest_rate_input = ft.TextField(label="Процент, мес.", on_change=calculate_loan)
     term_input = ft.TextField(label="Срок кредита, мес.", on_change=calculate_loan)
     return_amount_input = ft.TextField(label="К возврату", read_only=True)
@@ -186,7 +205,6 @@ def main(page: ft.Page):
                   ft.Row(controls=[loan_amount_input, credit_sum_input]),  # Добавлено новое поле для суммы кредита
                   ft.Row(controls=[interest_rate_input, term_input, return_amount_input, calculate_button]),
                   ft.Row(controls=[next_client_button])],
-
         spacing=40
     )
 
