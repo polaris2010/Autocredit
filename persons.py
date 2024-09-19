@@ -20,41 +20,41 @@ class Person:
     @classmethod
     def verify_full_name(cls, full_name):
         if not isinstance(full_name, str):
-            raise TypeError("Full name must be a string")
+            raise TypeError("ФИО должно быть строкой")
 
         name_parts = full_name.split()
         if len(name_parts) != 3:
-            raise TypeError("Full name must contain 3 parts (first, last, middle name)")
+            raise TypeError("ФИО должно состоять из фамилии, имени и отчества")
 
         allowed_characters = ascii_letters + cls.S_RUS + cls.S_RUS_UPPER
         for part in name_parts:
             if len(part) < 1:
-                raise TypeError("Each part of the full name must contain at least one character")
+                raise TypeError("ФИО должно содержать несколько символов")
             if any(char not in allowed_characters for char in part):
-                raise TypeError("Full name must contain only letters")
+                raise TypeError("ФИО должно состоять только из букв")
 
     # Проверка корректности даты рождения
     @classmethod
     def verify_birthdate(cls, birthdate):
         if not isinstance(birthdate, str):
-            raise TypeError("Birthdate must be a string in the format DD.MM.YYYY")
+            raise TypeError("Дата рождения должна быть строкой в формате DD.MM.YYYY")
         try:
             datetime.strptime(birthdate, '%d.%m.%Y')
         except ValueError:
-            raise ValueError("Invalid birthdate format. Expected format: DD.MM.YYYY")
+            raise ValueError("Ошибка формата. Правильный формат: DD.MM.YYYY")
 
     # Проверка номера паспорта
     @classmethod
     def verify_passport(cls, passport):
         if not isinstance(passport, str):
-            raise TypeError("Passport number must be a string in the format 0000 000000")
+            raise TypeError("Номер паспорта должен быть строкой в формате 0000 000000")
 
         passport_parts = passport.split()
         if len(passport_parts) != 2 or len(passport_parts[0]) != 4 or len(passport_parts[1]) != 6:
-            raise TypeError("Invalid passport format. Expected format: 0000 000000")
+            raise TypeError("IОшибка формата. Правильный формат: 0000 000000")
 
         if not (passport_parts[0].isdigit() and passport_parts[1].isdigit()):
-            raise TypeError("Passport series and number must contain only digits")
+            raise TypeError("Серия и номер паспорта должны содержать хотя бы одну цифру")
 
     # Проверка кредитного статуса
     def calculate_status(self):
